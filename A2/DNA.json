@@ -1,0 +1,84 @@
+{
+    "nodes": [
+        {
+            "id": "ATC",
+            "group": 50
+        },
+        {
+            "id": "TCG",
+            "group": 2
+        },
+        {
+            "id": "CGT",
+            "group": 3
+        },
+        {
+            "id": "GTC",
+            "group": 4
+        },
+        {
+            "id": "TCG",
+            "group": 5
+        },
+        {
+            "id": "CGA",
+            "group": 6
+        }
+    ],
+    "links": [
+        {
+            "source": "ATC",
+            "target": "TCG",
+
+            "value": 50
+        },
+        {
+            "source": "ATC",
+            "target": "TCG",
+
+            "value": 50
+        },
+        {
+            "source": "TCG",
+            "target": "CGT",
+
+            "value": 50
+        },
+        {
+            "source": "TCG",
+            "target": "CGA",
+
+            "value": 50
+        },
+        {
+            "source": "CGT",
+            "target": "GTC",
+
+            "value": 50
+        },
+        {
+            "source": "TCG",
+            "target": "CGA",
+
+            "value": 50
+        },
+        {
+            "source": "TCG",
+            "target": "CGT",
+
+            "value": 50
+        },
+        {
+            "source": "GTC",
+            "target": "TCG",
+
+            "value": 50
+        },
+        {
+            "source": "GTC",
+            "target": "TCG",
+
+            "value": 50
+        }
+    ]
+}
