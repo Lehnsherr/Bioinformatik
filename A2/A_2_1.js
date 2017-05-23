@@ -4,23 +4,13 @@
 d3.json("DNA.json", function (error, links) {
 
     var nodes = {};
-    console.log(links)
-    console.log(links.links)
-
     // Compute the distinct nodes from the links.
     links.links.forEach(function (link) {
-        console.log(link.source)
-        console.log(nodes[link.source])
-
         link.source = nodes[link.source] ||
             (nodes[link.source] = { name: link.source });
         link.target = nodes[link.target] ||
             (nodes[link.target] = { name: link.target });
         link.value = +link.value;
-
-        console.log(link.source)
-        console.log(link.target)
-        console.log(link.value)
     })
 
 
