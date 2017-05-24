@@ -20,9 +20,12 @@ d3.json("DNA.json", function (error, links) {
 
         markerWidth = 6,
         markerHeight = 6,
-        cRadius = 30, // play with the cRadius value
-        refX = 15     //cRadius + (markerWidth * 2),
-        refY = -1.5     //-Math.sqrt(cRadius),
+        cRadius = 30,       // play with the cRadius value
+        refX = 15,          //cRadius + (markerWidth * 2),
+        refY = -1.5,         //-Math.sqrt(cRadius),
+
+        pathX = cRadius + (markerWidth * 2),
+        pathY = Math.sqrt(cRadius),
         drSub = cRadius + refY;
 
     var force = d3.layout.force()
@@ -57,7 +60,8 @@ d3.json("DNA.json", function (error, links) {
 
     var svg = d3.select("body").append("svg")
         .attr("width", width)
-        .attr("height", height);
+        .attr("height", height)
+        .attr("class", "graph");
 
     // build the arrow.
     svg.append("svg:defs").selectAll("marker")
@@ -76,12 +80,30 @@ d3.json("DNA.json", function (error, links) {
 
 
     // add the links and the arrows
-    var path = svg.append("svg:g").selectAll("path")
+    var path = svg.selectAll(".path")
+        //svg.append("svg:g").selectAll("path")
         .data(force.links())
         .enter().append("svg:path")
+        .attr("id",  function (d) { return  "path"+d.id; })
         .attr("class", function (d) { return "link " + d.type; })
-        .attr("marker-end", "url(#end)");
+        .attr("marker-end", "url(#end)")
+        .attr("d", "M 10,90 Q 100,15 200,70 Q 340,140 400,30"); 
+    
+  
 
+    svg.selectAll(".link")
+        .append("text")
+
+        .append("textPath")
+        .attr("xlink:href", function (d) { return "#path"+d.id; }) 
+        .style("text-anchor","middle") 
+	    .attr("startOffset", "50%")		
+
+
+        //.attr("x", pathX)
+        //.attr("dy", "."+pathY+"em")
+        //. //append a textPath to the text element
+        .text(function (d) { return d.value; });
 
     // define the nodes
     var node = svg.selectAll(".node")
