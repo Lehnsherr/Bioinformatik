@@ -5,8 +5,14 @@
     <meta charset="utf-8">
     <title>Bioinformatik Aufgabe 2-1</title>
 
-    <link href="../../../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+        crossorigin="anonymous">
+
     <script src="https://d3js.org/d3.v3.min.js"></script>
     <link href="A_2_1.css" rel="stylesheet">
 </head>
@@ -15,12 +21,26 @@
 
     <h1>Bioinformatik Aufgabe 2</h1>
 
-   <!-- <svg width="1000" height="1000"></svg> -->
+    <svg width="1000" height="500"></svg> 
+
+    <input type="file" id="files" name="files[]" multiple />
+    <output id="list"></output>
+    
+    <span class="readBytesButtons">
+        <button data-startbyte="0" data-endbyte="4">1-5</button>
+        <button data-startbyte="5" data-endbyte="14">6-15</button>
+        <button data-startbyte="6" data-endbyte="7">7-8</button>
+        <button>entire file</button>
+    </span>
+
+    <span class="readLineButtons"></span>
+    <div id="byte_range"></div>    
+    <div id="byte_content"></div>
 
 
     <script type="text/javascript" src="A_2_1.js"></script>
-    <script src="../../../node_modules/jquery/dist/jquery.min.js"></script>
-    <script src="../../../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 </body>
 
 

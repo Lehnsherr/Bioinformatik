@@ -1,6 +1,108 @@
 // http://jsfiddle.net/Y9Qq3/2/
 // http://bl.ocks.org/d3noob/5155181
 
+//https://www.visualcinnamon.com/2015/09/placing-text-on-arcs.html
+
+//https://www.html5rocks.com/en/tutorials/file/dndfiles/
+
+/**
+ * Filereader 
+ * 
+ * Dat File auslesen 
+ * Objekte erstellen
+ * 
+ */
+
+
+// Check for the various File API support.
+if (window.File && window.FileReader && window.FileList && window.Blob) {
+    // Great success! All the File APIs are supported.
+} else {
+    alert('The File APIs are not fully supported in this browser.');
+}
+
+function handleFileSelect(evt) {
+    var files = evt.target.files; // FileList object
+
+    // files is a FileList of File objects. List some properties.
+    var output = [];
+    for (var i = 0, f; f = files[i]; i++) {
+        output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
+            f.size, ' bytes, last modified: ',
+            f.lastModified  ? f.lastModified.toLocaleDateString() : 'n/a',
+            '</li>');
+    }
+    document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+}
+
+document.getElementById('files').addEventListener('change', handleFileSelect, false);
+
+
+function readBlob(opt_startByte, opt_stopByte) {
+
+    var files = document.getElementById('files').files;
+    if (!files.length) {
+        alert('Please select a file!');
+        return;
+    }
+
+    var file = files[0];
+    var start = parseInt(opt_startByte) || 0;
+    var stop = parseInt(opt_stopByte) || file.size - 1;
+
+    var reader = new FileReader();
+
+    var btnSpace = d3.select("readLineButtons");
+
+    // If we use onloadend, we need to check the readyState.
+    reader.onloadend = function (evt) {
+        if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+            //console.log(reader.result);
+
+
+
+            var lines = reader.result.split('\n');
+            var c = 0;
+            for (var i = 0; i < lines.length; i++) {
+                console.log(lines[i]);
+            /*
+                c = c + lines[i].length
+                 
+                btnSpace.append("button")
+                        .attr("data-startbyte", c - lines[i].length)
+                        .attr("data-endbyte", c)
+                        .text(lines[i])
+            */
+            }
+            
+            document.getElementById('byte_content').textContent = evt.target.result;
+            document.getElementById('byte_range').textContent =
+                ['Read bytes: ', start + 1, ' - ', stop + 1,
+                    ' of ', file.size, ' byte file'].join('');
+            
+        }
+    };
+
+    var blob = file.slice(start, stop + 1);
+    reader.readAsBinaryString(blob);
+}
+
+document.querySelector('.readBytesButtons').addEventListener('click', function (evt) {
+    if (evt.target.tagName.toLowerCase() == 'button') {
+        var startByte = evt.target.getAttribute('data-startbyte');
+        var endByte = evt.target.getAttribute('data-endbyte');
+        readBlob(startByte, endByte);
+    }
+}, false);
+
+
+
+/**
+ * Graph
+ * Bisher nur nur direktes auslesen von json Datei
+ * 
+ */
+
 d3.json("DNA.json", function (error, links) {
 
     var nodes = {};
@@ -15,15 +117,15 @@ d3.json("DNA.json", function (error, links) {
 
 
 
-    var width = 960,
-        height = 500,
+    var svg = d3.select("svg"),
+        width = +svg.attr("width"),
+        height = +svg.attr("height"),
 
         markerWidth = 6,
         markerHeight = 6,
-        cRadius = 30,       // play with the cRadius value
-        refX = 15,          //cRadius + (markerWidth * 2),
-        refY = -1.5,         //-Math.sqrt(cRadius),
-
+        cRadius = 30,
+        refX = 15,
+        refY = -1.5,
         pathX = cRadius + (markerWidth * 2),
         pathY = Math.sqrt(cRadius),
         drSub = cRadius + refY;
@@ -36,12 +138,6 @@ d3.json("DNA.json", function (error, links) {
         .charge(-300)
         .on("tick", tick)
         .start();
-
-    // Set the range
-    var v = d3.scale.linear().range([0, 100]);
-
-    // Scale the range of the data
-    v.domain([0, d3.max(links, function (d) { return d.value; })]);
 
     // asign a type per value to encode opacity
     links.links.forEach(function (link) {
@@ -58,10 +154,6 @@ d3.json("DNA.json", function (error, links) {
         console.log("LinkType: " + link.type)
     });
 
-    var svg = d3.select("body").append("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .attr("class", "graph");
 
     // build the arrow.
     svg.append("svg:defs").selectAll("marker")
@@ -84,22 +176,20 @@ d3.json("DNA.json", function (error, links) {
         //svg.append("svg:g").selectAll("path")
         .data(force.links())
         .enter().append("svg:path")
-        .attr("id",  function (d) { return  "path"+d.id; })
+        .attr("id", function (d) { return "path" + d.id; })
         .attr("class", function (d) { return "link " + d.type; })
         .attr("marker-end", "url(#end)")
-        .attr("d", "M 10,90 Q 100,15 200,70 Q 340,140 400,30"); 
-    
-  
+    //.attr("d", "M 10,90 Q 100,15 200,70 Q 340,140 400,30");
+
+
 
     svg.selectAll(".link")
         .append("text")
 
         .append("textPath")
-        .attr("xlink:href", function (d) { return "#path"+d.id; }) 
-        .style("text-anchor","middle") 
-	    .attr("startOffset", "50%")		
-
-
+        .attr("xlink:href", function (d) { return "#path" + d.id; })
+        .style("text-anchor", "middle")
+        .attr("startOffset", "50%")
         //.attr("x", pathX)
         //.attr("dy", "."+pathY+"em")
         //. //append a textPath to the text element
