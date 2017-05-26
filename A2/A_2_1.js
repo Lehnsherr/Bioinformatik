@@ -9,8 +9,6 @@
  * Filereader 
  * 
  * Dat File auslesen 
- * Objekte erstellen
- * 
  */
 
 
@@ -29,7 +27,7 @@ function handleFileSelect(evt) {
     for (var i = 0, f; f = files[i]; i++) {
         output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
             f.size, ' bytes, last modified: ',
-            f.lastModified  ? f.lastModified.toLocaleDateString() : 'n/a',
+            f.lastModified ? f.lastModified.toLocaleDateString() : 'n/a',
             '</li>');
     }
     document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
@@ -57,29 +55,31 @@ function readBlob(opt_startByte, opt_stopByte) {
     // If we use onloadend, we need to check the readyState.
     reader.onloadend = function (evt) {
         if (evt.target.readyState == FileReader.DONE) { // DONE == 2
-            //console.log(reader.result);
-
-
 
             var lines = reader.result.split('\n');
             var c = 0;
+            var jsonString = [];
+            var objArray = [];
+
             for (var i = 0; i < lines.length; i++) {
-                console.log(lines[i]);
-            /*
                 c = c + lines[i].length
-                 
-                btnSpace.append("button")
-                        .attr("data-startbyte", c - lines[i].length)
-                        .attr("data-endbyte", c)
-                        .text(lines[i])
-            */
+                objArray[i] = lineToFragment(lines[i], c, i);
+                //console.log(objArray[i]);
+
+                squenz_assambly_var_1(objArray[i].fragment, 3);
             }
-            
-            document.getElementById('byte_content').textContent = evt.target.result;
-            document.getElementById('byte_range').textContent =
-                ['Read bytes: ', start + 1, ' - ', stop + 1,
-                    ' of ', file.size, ' byte file'].join('');
-            
+
+
+
+
+            for (var i = 0; i < objArray.length; i++) {
+                document.getElementById("demo").innerHTML = objArray[i].id + ", " + objArray[i].fragment + ", " + objArray[i].count;
+
+                document.getElementById('byte_content').textContent = evt.target.result;
+                document.getElementById('byte_range').textContent =
+                    ['Read bytes: ', start + 1, ' - ', stop + 1,
+                        ' of ', file.size, ' byte file'].join('');
+            }
         }
     };
 
@@ -95,7 +95,43 @@ document.querySelector('.readBytesButtons').addEventListener('click', function (
     }
 }, false);
 
+/**
+ * Objekte erstellen
+ */ 
+function lineToFragment(line, count, i) {
+    var fragmentString = '{"id":' + i + ', "fragment": ' + '"' + line + '"' + ', "count":' + count + '}'
 
+    var objArray = [];
+    objArray[i] = JSON.parse(fragmentString);
+    //console.log(objArray[i]);
+
+    return objArray[i];
+}
+
+/**
+ * 
+ * Fragmente Verlgeichen
+ * 
+ */
+function squenz_assambly_var_1(fragment, size){
+    var fragmentChunk = [];
+    fragmentChunk = createChunk(fragment, size);
+    console.log(fragmentChunk)
+
+    for (var i = 0; i < fragmentChunk.length; i++) {
+        
+    }
+
+}
+
+function suffix (str){
+    var size = str.length - 1;
+      createChunk(str, size)
+}
+
+function createChunk(str, size) {
+    return str.match(new RegExp('.{1,' + size + '}', 'g'));
+}
 
 /**
  * Graph
@@ -141,7 +177,7 @@ d3.json("DNA.json", function (error, links) {
 
     // asign a type per value to encode opacity
     links.links.forEach(function (link) {
-        console.log(link.value)
+        //console.log(link.value)
         if (link.value <= 25) {
             link.type = "twofive";
         } else if ((link.value <= 50) && (link.value > 25)) {
@@ -151,7 +187,7 @@ d3.json("DNA.json", function (error, links) {
         } else if ((link.value) <= 100 && (link.value) > 75) {
             link.type = "onezerozero";
         }
-        console.log("LinkType: " + link.type)
+        //console.log("LinkType: " + link.type)
     });
 
 
