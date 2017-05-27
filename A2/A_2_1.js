@@ -6,12 +6,16 @@
 //https://www.html5rocks.com/en/tutorials/file/dndfiles/
 
 /**
+ * Golbale Variablen
+ */
+// Graph Objekt Array
+var objArray = [];
+
+/**
  * Filereader 
  * 
  * Dat File auslesen 
  */
-
-
 // Check for the various File API support.
 if (window.File && window.FileReader && window.FileList && window.Blob) {
     // Great success! All the File APIs are supported.
@@ -97,7 +101,7 @@ document.querySelector('.readBytesButtons').addEventListener('click', function (
 
 /**
  * Objekte erstellen
- */ 
+ */
 function lineToFragment(line, count, i) {
     var fragmentString = '{"id":' + i + ', "fragment": ' + '"' + line + '"' + ', "count":' + count + '}'
 
@@ -109,36 +113,129 @@ function lineToFragment(line, count, i) {
 }
 
 /**
- * 
- * Fragmente Verlgeichen
- * 
+ * Sequenz-Assembly - Variante 1
+ * Algorithmus: 
+ * 1. Teste alle Paare, ob eine Überlappung der Länge k-1
+ *      vorhanden ist.
+ * 2. Für jedes Paar mit einer Überlappung wird eine gerichtete
+ *      Kante zwischen den entsprechenden Knoten von G eingefügt.
+ * 3. Berechne Euler-Pfad ( oder Hamiltonian Path )
+ * 4. Der Text T kann rekonstruiert werden, indem die ersten
+ *      Buchstaben aller Knoten in der Pfad-Reihenfolge aneinander
+ *      gehängt werden. Dann werden die restlichen k-1 Buchstaben
+ *      des letzten Knotens hinzugefügt.
  */
-function squenz_assambly_var_1(fragment, size){
+function squenz_assambly_var_1(fragment, size) {
     var fragmentChunk = [];
-    fragmentChunk = createChunk(fragment, size);
-    console.log(fragmentChunk)
+    fragmentChunk = createChunks(fragment, size);
+    console.log(fragment, fragmentChunk)
 
-    for (var i = 0; i < fragmentChunk.length; i++) {
-        
+    for (var i = 0; i < fragment.length; i++) {
+        if ((fragmentChunk[i + 1]) === undefined) {
+        } else {
+            //console.log(fragmentChunk[i].length, fragmentChunk.length, size);
+            if (((fragmentChunk[i].length) == size) && ((fragmentChunk[i + 1].length) == size)) {
+                compareFragmentChunks(i, fragmentChunk[i], fragmentChunk[i + 1]);
+            }
+        }
+    }
+    console.log(objArray);
+}
+
+
+/**
+ * 1. Teste alle Paare, ob eine Überlappung der Länge k-1
+ */
+function compareFragmentChunks(i, fragmentChunk_1, fragmentChunk_2) {
+    //console.log("Suffix: " + suffix(fragmentChunk_1));
+    //console.log("Prefix: " + prefix(fragmentChunk_2));
+
+    if (fragmentChunk_1.length < fragmentChunk_2.length) {
+        length = fragmentChunk_1.length
+    } else {
+        length = fragmentChunk_2.length
     }
 
+    console.log(fragmentChunk_1, fragmentChunk_2);
+    for (var i = 0; i < length; i++) {
+        if (suffix(fragmentChunk_1[i]) == prefix(fragmentChunk_2[i])) {
+            addToGraphObj(i, fragmentChunk_1[i], fragmentChunk_2[i], 1);
+        }
+    }
 }
 
-function suffix (str){
+
+/**
+ * 2. Für jedes Paar mit einer Überlappung wird eine gerichtete
+ *      Kante zwischen den entsprechenden Knoten von G eingefügt.
+ * @param {*} source 
+ * @param {*} target 
+ * @param {*} value 
+ */
+function addToGraphObj(i, source, target, value) {
+    var graphString = '{"id":' + i +
+        ', "source": ' + '"' + source + '"' +
+        ', "target": ' + '"' + target + '"' +
+        ', "value":' + value +
+        '}'
+
+    objArray[i] = JSON.parse(graphString);
+    //console.log(objArray[i]);
+
+    return objArray[i];
+}
+
+function prefix(str) {
     var size = str.length - 1;
-      createChunk(str, size)
+    var pre = createChunk(str, size);
+
+    return pre[0];
 }
 
-function createChunk(str, size) {
-    return str.match(new RegExp('.{1,' + size + '}', 'g'));
+function suffix(str) {
+    var end = str.length;
+    var start = str.length - 2;
+    var suf = str.substring(start, end);
+
+    return suf
+}
+
+function createChunks(str, end, start = 1) {
+    var chunks = [];
+    var tStr = "";
+    for (var i = 0; i < str.length; i++) {
+        var tmpStr = str.substring(i, str.length);
+
+
+        tStr = (tmpStr.match(new RegExp('.{' + start + ',' + end + '}', 'g')));
+        //console.log(tmpStr, tStr, start, end)
+
+
+        for (var k = 0; k < tStr.length; k++) {
+            //remove elements with lenghts < end (3)
+            if (tStr[k].length !== end) {
+                tStr.splice(k);
+            }
+        }
+
+        chunks.push(tStr);
+
+    }
+    //console.log(str, chunks);
+    return chunks
+}
+
+function createChunk(str, end, start = 1) {
+    //console.log(str, start, end)
+    return str.match(new RegExp('.{' + start + ',' + end + '}', 'g'));
 }
 
 /**
  * Graph
+ * 
  * Bisher nur nur direktes auslesen von json Datei
  * 
  */
-
 d3.json("DNA.json", function (error, links) {
 
     var nodes = {};
