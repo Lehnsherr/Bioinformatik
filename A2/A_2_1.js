@@ -63,23 +63,19 @@ function readBlob(opt_startByte, opt_stopByte) {
             var lines = reader.result.split('\n');
             var c = 0;
             var jsonString = [];
-            var objArray = [];
+            var fragmentArray = [];
 
             for (var i = 0; i < lines.length; i++) {
                 c = c + lines[i].length
-                objArray[i] = lineToFragment(lines[i], c, i);
-                //console.log(objArray[i]);
+                fragmentArray[i] = lineToFragment(lines[i], c, i);
+                console.log(fragmentArray[i]);
 
-                squenz_assambly_var_1(objArray[i].fragment, 3);
+                squenz_assambly_var_1(fragmentArray[i].fragment, 3);
             }
 
+            buildTable(fragmentArray);
 
-
-
-            for (var i = 0; i < objArray.length; i++) {
-                document.getElementById("demo").innerHTML = objArray[i].id + ", " + objArray[i].fragment + ", " + objArray[i].count;
-
-                document.getElementById('byte_content').textContent = evt.target.result;
+            for (var i = 0; i < fragmentArray.length; i++) {
                 document.getElementById('byte_range').textContent =
                     ['Read bytes: ', start + 1, ' - ', stop + 1,
                         ' of ', file.size, ' byte file'].join('');
@@ -128,7 +124,7 @@ function lineToFragment(line, count, i) {
 function squenz_assambly_var_1(fragment, size) {
     var fragmentChunk = [];
     fragmentChunk = createChunks(fragment, size);
-    console.log(fragment, fragmentChunk)
+    //console.log(fragment, fragmentChunk)
 
     for (var i = 0; i < fragment.length; i++) {
         if ((fragmentChunk[i + 1]) === undefined) {
@@ -140,6 +136,7 @@ function squenz_assambly_var_1(fragment, size) {
         }
     }
     console.log(objArray);
+    buildGraph(objArray);
 }
 
 
@@ -156,7 +153,7 @@ function compareFragmentChunks(i, fragmentChunk_1, fragmentChunk_2) {
         length = fragmentChunk_2.length
     }
 
-    console.log(fragmentChunk_1, fragmentChunk_2);
+    //console.log(fragmentChunk_1, fragmentChunk_2);
     for (var i = 0; i < length; i++) {
         if (suffix(fragmentChunk_1[i]) == prefix(fragmentChunk_2[i])) {
             addToGraphObj(i, fragmentChunk_1[i], fragmentChunk_2[i], 1);
@@ -180,7 +177,6 @@ function addToGraphObj(i, source, target, value) {
         '}'
 
     objArray[i] = JSON.parse(graphString);
-    //console.log(objArray[i]);
 
     return objArray[i];
 }
@@ -226,29 +222,53 @@ function createChunks(str, end, start = 1) {
 }
 
 function createChunk(str, end, start = 1) {
-    //console.log(str, start, end)
     return str.match(new RegExp('.{' + start + ',' + end + '}', 'g'));
 }
+
+
+/**
+ *  Table 
+ *  Erzeugen einer Tabelle mit Werten aus Array 
+ */
+function buildTable(fragmentArray) {
+    for (var i = 0; i < fragmentArray.length; i++) {
+        //console.log(fragmentArray[i].id, fragmentArray[i].fragment, fragmentArray[i].count)
+        var tr = document.createElement('tr');
+        var td_id = tr.appendChild(document.createElement('td'));
+        var td_frag = tr.appendChild(document.createElement('td'));
+        var td_val = tr.appendChild(document.createElement('td'));
+        var td_id_text = document.createTextNode(fragmentArray[i].id);
+        var td_frag_text = document.createTextNode(fragmentArray[i].fragment);
+        var td_val_text = document.createTextNode(fragmentArray[i].count);
+
+        td_id.appendChild(td_id_text);
+        td_frag.appendChild(td_frag_text);
+        td_val.appendChild(td_val_text);
+
+
+        document.getElementById("tbody").appendChild(tr);
+    }
+}
+
 
 /**
  * Graph
  * 
- * Bisher nur nur direktes auslesen von json Datei
+ * Links -> sind die Ergebnisse aus compareFragmentChunks
  * 
  */
-d3.json("DNA.json", function (error, links) {
-
+function buildGraph(links) {
     var nodes = {};
+
     // Compute the distinct nodes from the links.
-    links.links.forEach(function (link) {
+    links.forEach(function (link) {
+        //console.log(link.source, link.target);
         link.source = nodes[link.source] ||
             (nodes[link.source] = { name: link.source });
         link.target = nodes[link.target] ||
             (nodes[link.target] = { name: link.target });
         link.value = +link.value;
     })
-
-
 
     var svg = d3.select("svg"),
         width = +svg.attr("width"),
@@ -265,7 +285,7 @@ d3.json("DNA.json", function (error, links) {
 
     var force = d3.layout.force()
         .nodes(d3.values(nodes))
-        .links(links.links)
+        .links(links)
         .size([width, height])
         .linkDistance(160)
         .charge(-300)
@@ -273,8 +293,7 @@ d3.json("DNA.json", function (error, links) {
         .start();
 
     // asign a type per value to encode opacity
-    links.links.forEach(function (link) {
-        //console.log(link.value)
+    links.forEach(function (link) {
         if (link.value <= 25) {
             link.type = "twofive";
         } else if ((link.value <= 50) && (link.value > 25)) {
@@ -284,7 +303,6 @@ d3.json("DNA.json", function (error, links) {
         } else if ((link.value) <= 100 && (link.value) > 75) {
             link.type = "onezerozero";
         }
-        //console.log("LinkType: " + link.type)
     });
 
 
@@ -397,5 +415,4 @@ d3.json("DNA.json", function (error, links) {
             .style("stroke", "none")
             .style("font", "10px sans-serif");
     }
-
-});
+};

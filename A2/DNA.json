@@ -1,30 +1,4 @@
 {
-    "nodes": [
-        {
-            "id": "ATC",
-            "group": 50
-        },
-        {
-            "id": "TCG",
-            "group": 2
-        },
-        {
-            "id": "CGT",
-            "group": 3
-        },
-        {
-            "id": "GTC",
-            "group": 4
-        },
-        {
-            "id": "TCG",
-            "group": 5
-        },
-        {
-            "id": "CGA",
-            "group": 6
-        }
-    ],
     "links": [
         {
             "id": 1,
