@@ -10,7 +10,7 @@
  */
 // Graph Objekt Array
 var objArray = [];
-
+var graphArray = [];
 /**
  * Filereader 
  * 
@@ -70,7 +70,7 @@ function readBlob(opt_startByte, opt_stopByte) {
                 fragmentArray[i] = lineToFragment(lines[i], c, i);
                 console.log(fragmentArray[i]);
 
-                squenz_assambly_var_1(fragmentArray[i].fragment, 3);
+                //squenz_assambly_var_1(fragmentArray[i].fragment, 3);
             }
 
             buildTable(fragmentArray);
@@ -123,20 +123,23 @@ function lineToFragment(line, count, i) {
  */
 function squenz_assambly_var_1(fragment, size) {
     var fragmentChunk = [];
+    graphArray = [];
+
     fragmentChunk = createChunks(fragment, size);
     //console.log(fragment, fragmentChunk)
 
     for (var i = 0; i < fragment.length; i++) {
+        //console.log(fragmentChunk[i], fragmentChunk[i +1]);
+
         if ((fragmentChunk[i + 1]) === undefined) {
         } else {
-            //console.log(fragmentChunk[i].length, fragmentChunk.length, size);
-            if (((fragmentChunk[i].length) == size) && ((fragmentChunk[i + 1].length) == size)) {
+            //if (((fragmentChunk[i].length) == size) && ((fragmentChunk[i + 1].length) == size)) {
                 compareFragmentChunks(i, fragmentChunk[i], fragmentChunk[i + 1]);
-            }
+            //}
         }
     }
-    console.log(objArray);
-    buildGraph(objArray);
+    //console.log(graphArray);
+    buildGraph(graphArray);
 }
 
 
@@ -144,8 +147,6 @@ function squenz_assambly_var_1(fragment, size) {
  * 1. Teste alle Paare, ob eine Überlappung der Länge k-1
  */
 function compareFragmentChunks(i, fragmentChunk_1, fragmentChunk_2) {
-    //console.log("Suffix: " + suffix(fragmentChunk_1));
-    //console.log("Prefix: " + prefix(fragmentChunk_2));
 
     if (fragmentChunk_1.length < fragmentChunk_2.length) {
         length = fragmentChunk_1.length
@@ -153,9 +154,10 @@ function compareFragmentChunks(i, fragmentChunk_1, fragmentChunk_2) {
         length = fragmentChunk_2.length
     }
 
-    //console.log(fragmentChunk_1, fragmentChunk_2);
+    //console.log(fragmentChunk_1, fragmentChunk_1.length , fragmentChunk_2, fragmentChunk_2.length);
     for (var i = 0; i < length; i++) {
         if (suffix(fragmentChunk_1[i]) == prefix(fragmentChunk_2[i])) {
+            //console.log(i , fragmentChunk_1[i], fragmentChunk_2[i]);
             addToGraphObj(i, fragmentChunk_1[i], fragmentChunk_2[i], 1);
         }
     }
@@ -176,9 +178,7 @@ function addToGraphObj(i, source, target, value) {
         ', "value":' + value +
         '}'
 
-    objArray[i] = JSON.parse(graphString);
-
-    return objArray[i];
+    graphArray.push(JSON.parse(graphString));
 }
 
 function prefix(str) {
@@ -232,24 +232,45 @@ function createChunk(str, end, start = 1) {
  */
 function buildTable(fragmentArray) {
     for (var i = 0; i < fragmentArray.length; i++) {
-        //console.log(fragmentArray[i].id, fragmentArray[i].fragment, fragmentArray[i].count)
+        console.log(fragmentArray[i].id, fragmentArray[i].fragment, fragmentArray[i].count)
+        
+        var frag = fragmentArray[i].fragment; 
+        
         var tr = document.createElement('tr');
         var td_id = tr.appendChild(document.createElement('td'));
         var td_frag = tr.appendChild(document.createElement('td'));
         var td_val = tr.appendChild(document.createElement('td'));
+        var td_btn = tr.appendChild(document.createElement('td'));
+        
+        var btn = document.createElement('Button');
+        btn.type = "button";
+        btn.setAttribute("class", "btn_table");
+        btn.value = "Build graph";
+        if(btn.addEventListener){
+            btn.addEventListener('click', function() { 
+                squenz_assambly_var_1(frag, 3);
+            });    
+        } else if(btn.attachEvent){ // IE < 9 :(
+            btn.attachEvent('onclick', function() { 
+                 squenz_assambly_var_1(frag, 3);
+            });
+        }
+        
+        td_btn.appendChild(btn);
+
         var td_id_text = document.createTextNode(fragmentArray[i].id);
         var td_frag_text = document.createTextNode(fragmentArray[i].fragment);
         var td_val_text = document.createTextNode(fragmentArray[i].count);
+        var btn_text = document.createTextNode("Assambly Var 1 " + fragmentArray[i].id + " erzeugen");
 
         td_id.appendChild(td_id_text);
         td_frag.appendChild(td_frag_text);
         td_val.appendChild(td_val_text);
-
+        btn.appendChild(btn_text);
 
         document.getElementById("tbody").appendChild(tr);
     }
 }
-
 
 /**
  * Graph
@@ -262,13 +283,16 @@ function buildGraph(links) {
 
     // Compute the distinct nodes from the links.
     links.forEach(function (link) {
-        //console.log(link.source, link.target);
+        console.log(link.source, link.target);
         link.source = nodes[link.source] ||
             (nodes[link.source] = { name: link.source });
         link.target = nodes[link.target] ||
             (nodes[link.target] = { name: link.target });
         link.value = +link.value;
     })
+
+    //select all the elements below the SVG with the "svg > *" selector, i.e. to remove all of those
+    d3.selectAll("svg > *").remove();
 
     var svg = d3.select("svg"),
         width = +svg.attr("width"),

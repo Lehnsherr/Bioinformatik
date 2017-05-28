@@ -40,6 +40,10 @@ text {
   overflow-x: hidden;
 }
 
-#byte_range { 
-  margin-top: 5px; 
+.btn_table{
+   display: inline-block;
+   width: 100%;       /* set to 100% */
+   height: 100%;      /* set to 100% */
+   padding-top: .6em;
+   padding-bottom: .6em;
 }

@@ -3,15 +3,10 @@
 
 <head>
     <meta charset="utf-8">
+
     <title>Bioinformatik Aufgabe 2-1</title>
 
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
-        crossorigin="anonymous">
-
-    <!-- Optional theme -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
-        crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 
     <script src="https://d3js.org/d3.v3.min.js"></script>
     <link href="A_2_1.css" rel="stylesheet">
@@ -27,42 +22,41 @@
                 <div class="col-md-4">
                     <input type="file" id="files" name="files[]" multiple />
                 </div>
-                
+
                 <div class="col-md-4">
-                     <output id="list"></output>
                     <div id="byte_range"></div>
                 </div>
-                
+
                 <div class="col-md-4">
                     <div class="readBytesButtons">
-                        <button>Graph erzeugen</button>
+                        <button>Datei auslesen</button>
                     </div>
                 </div>
-
             </div>
             </br>
             <table class="table table-bordered" border="1">
 
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Fragment</th>
-                    <th>Count</th>
-                </tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-        </table>
+                <thead>
+                    <tr>
+                        <th>ID:</th>
+                        <th>Fragment:</th>
+                        <th>Byte Anzahl:</th>
+                        <th>Erzeuge Graph mit:</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+
+
+        <div class="col-md-6">
+            <svg width="1000" height="500"></svg>
+        </div>
+
     </div>
-
-    <div class="col-md-1">
-        <svg width="1000" height="500"></svg>
-    </div>
-
-
     <script type="text/javascript" src="A_2_1.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
-        crossorigin="anonymous">
-    </script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </body>
+
 </html>
