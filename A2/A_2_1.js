@@ -1,5 +1,5 @@
-// http://jsfiddle.net/Y9Qq3/2/
-// http://bl.ocks.org/d3noob/5155181
+//http://jsfiddle.net/Y9Qq3/2/
+//http://bl.ocks.org/d3noob/5155181
 
 //https://www.visualcinnamon.com/2015/09/placing-text-on-arcs.html
 
@@ -54,32 +54,34 @@ function readBlob(opt_startByte, opt_stopByte) {
 
     var reader = new FileReader();
 
-    var btnSpace = d3.select("readLineButtons");
+    var btnSpace = d3.select('readLineButtons');
 
     // If we use onloadend, we need to check the readyState.
     reader.onloadend = function (evt) {
         if (evt.target.readyState == FileReader.DONE) { // DONE == 2
-
             var lines = reader.result.split('\n');
             var c = 0;
-            var jsonString = [];
             var fragmentArray = [];
 
             for (var i = 0; i < lines.length; i++) {
-                c = c + lines[i].length
+                c = c + lines[i].length;
                 fragmentArray[i] = lineToFragment(lines[i], c, i);
                 console.log(fragmentArray[i]);
-
-                //squenz_assambly_var_1(fragmentArray[i].fragment, 3);
             }
 
             buildTable(fragmentArray);
 
-            for (var i = 0; i < fragmentArray.length; i++) {
+
+            for (var j = 0; j < fragmentArray.length; j++) {
                 document.getElementById('byte_range').textContent =
                     ['Read bytes: ', start + 1, ' - ', stop + 1,
                         ' of ', file.size, ' byte file'].join('');
             }
+
+            
+            var Adjazenzlist = makeAdjazenzlist(fragmentArray);
+            
+            console.log(Adjazenzlist);
         }
     };
 
@@ -99,7 +101,7 @@ document.querySelector('.readBytesButtons').addEventListener('click', function (
  * Objekte erstellen
  */
 function lineToFragment(line, count, i) {
-    var fragmentString = '{"id":' + i + ', "fragment": ' + '"' + line + '"' + ', "count":' + count + '}'
+    var fragmentString = '{"id":' + i + ', "fragment": ' + '"' + line + '"' + ', "count":' + count + '}';
 
     var objArray = [];
     objArray[i] = JSON.parse(fragmentString);
@@ -109,7 +111,107 @@ function lineToFragment(line, count, i) {
 }
 
 /**
- * Sequenz-Assembly - Variante 1
+ * Objekte erstellen
+ */
+function toAdjazenzList(id, frag_id, frag, compare_frag_id, compare_frag, overlap) {
+    var objArray = [];
+    var adjazenzString = '{"id":' + id + 
+                        ', "fragment_ID": ' + '"' + frag_id + '"' + 
+                        ', "fragment": ' + '"' + frag + '"' + 
+                        ', "Compfragment_ID": ' + '"' + compare_frag_id + '"' +
+                        ', "fragment 2": ' + '"' + compare_frag + '"' + 
+                        ', "overlap":' + overlap + '}';
+
+    objArray[id] = JSON.parse(adjazenzString);
+
+    return objArray[id];
+}
+
+function makeAdjazenzlist(fragments){
+    var Adjazenzlist = [];
+    var k = 0; 
+    var l = 0;
+
+    for (var i = 0; i < fragments.length; i++){
+        var fragment = fragments[i].fragment;
+        for (var j = 0; j < fragments.length; j++){
+            var compare_frag =  fragments[j].fragment;
+            var overlap = longestCommonSubstring(fragment,compare_frag);
+            
+            if (overlap.length !== 0 && overlap.length !== fragment.length && overlap.length !== compare_frag.length && fragment !== compare_frag){
+                Adjazenzlist[l] = (toAdjazenzList(k, i, fragment, j, compare_frag, overlap.length));
+                l++;
+            } 
+            
+            k++;
+        }
+    }
+    return Adjazenzlist;
+}
+
+function longestCommonSubstring(str1, str2){
+	if (!str1 || !str2)
+		return {
+			length: 0,
+			sequence: "",
+			offset: 0
+		};
+ 
+	var sequence = "",
+		str1Length = str1.length,
+		str2Length = str2.length,
+		num = new Array(str1Length),
+		maxlen = 0,
+		lastSubsBegin = 0;
+ 
+	for (var i = 0; i < str1Length; i++) {
+		var subArray = new Array(str2Length);
+		for (var j = 0; j < str2Length; j++)
+			subArray[j] = 0;
+		num[i] = subArray;
+	}
+	var thisSubsBegin = null;
+	for (var i = 0; i < str1Length; i++)
+	{
+		for (var j = 0; j < str2Length; j++)
+		{
+			if (str1[i] !== str2[j])
+				num[i][j] = 0;
+			else
+			{
+				if ((i === 0) || (j === 0))
+					num[i][j] = 1;
+				else
+					num[i][j] = 1 + num[i - 1][j - 1];
+ 
+				if (num[i][j] > maxlen)
+				{
+					maxlen = num[i][j];
+					thisSubsBegin = i - num[i][j] + 1;
+					if (lastSubsBegin === thisSubsBegin)
+					{//if the current LCS is the same as the last time this block ran
+						sequence += str1[i];
+					}
+					else //this block resets the string builder if a different LCS is found
+					{
+						lastSubsBegin = thisSubsBegin;
+						sequence= ""; //clear it
+						sequence += str1.substr(lastSubsBegin, (i + 1) - lastSubsBegin);
+					}
+				}
+			}
+		}
+	}
+	return {
+		length: maxlen,
+		sequence: sequence,
+		offset: thisSubsBegin
+	};
+}
+
+/* Veraltet, kann wsl weg
+/
+ Sequenz-Assembly - Variante 1
  * Algorithmus: 
  * 1. Teste alle Paare, ob eine Überlappung der Länge k-1
  *      vorhanden ist.
@@ -120,21 +222,21 @@ function lineToFragment(line, count, i) {
  *      Buchstaben aller Knoten in der Pfad-Reihenfolge aneinander
  *      gehängt werden. Dann werden die restlichen k-1 Buchstaben
  *      des letzten Knotens hinzugefügt.
- */
+/
 function squenz_assambly_var_1(fragment, size) {
     var fragmentChunk = [];
     graphArray = [];
 
     fragmentChunk = createChunks(fragment, size);
-    //console.log(fragment, fragmentChunk)
+    console.log(fragment, fragmentChunk);
 
     for (var i = 0; i < fragment.length; i++) {
         //console.log(fragmentChunk[i], fragmentChunk[i +1]);
 
-        if ((fragmentChunk[i + 1]) === undefined) {
+        if ((fragmentChunk[i + 1]) === undefined){
         } else {
             //if (((fragmentChunk[i].length) == size) && ((fragmentChunk[i + 1].length) == size)) {
-                compareFragmentChunks(i, fragmentChunk[i], fragmentChunk[i + 1]);
+            compareFragmentChunks(i, fragmentChunk[i], fragmentChunk[i + 1]);
             //}
         }
     }
@@ -143,15 +245,15 @@ function squenz_assambly_var_1(fragment, size) {
 }
 
 
-/**
+/*
  * 1. Teste alle Paare, ob eine Überlappung der Länge k-1
- */
+/
 function compareFragmentChunks(i, fragmentChunk_1, fragmentChunk_2) {
 
     if (fragmentChunk_1.length < fragmentChunk_2.length) {
-        length = fragmentChunk_1.length
+        length = fragmentChunk_1.length;
     } else {
-        length = fragmentChunk_2.length
+        length = fragmentChunk_2.length;
     }
 
     //console.log(fragmentChunk_1, fragmentChunk_1.length , fragmentChunk_2, fragmentChunk_2.length);
@@ -164,22 +266,6 @@ function compareFragmentChunks(i, fragmentChunk_1, fragmentChunk_2) {
 }
 
 
-/**
- * 2. Für jedes Paar mit einer Überlappung wird eine gerichtete
- *      Kante zwischen den entsprechenden Knoten von G eingefügt.
- * @param {*} source 
- * @param {*} target 
- * @param {*} value 
- */
-function addToGraphObj(i, source, target, value) {
-    var graphString = '{"id":' + i +
-        ', "source": ' + '"' + source + '"' +
-        ', "target": ' + '"' + target + '"' +
-        ', "value":' + value +
-        '}'
-
-    graphArray.push(JSON.parse(graphString));
-}
 
 function prefix(str) {
     var size = str.length - 1;
@@ -193,18 +279,18 @@ function suffix(str) {
     var start = str.length - 2;
     var suf = str.substring(start, end);
 
-    return suf
+    return suf;
 }
 
 function createChunks(str, end, start = 1) {
     var chunks = [];
-    var tStr = "";
+    var tStr = '';
     for (var i = 0; i < str.length; i++) {
         var tmpStr = str.substring(i, str.length);
 
 
         tStr = (tmpStr.match(new RegExp('.{' + start + ',' + end + '}', 'g')));
-        //console.log(tmpStr, tStr, start, end)
+        console.log(tmpStr, tStr, start, end)
 
 
         for (var k = 0; k < tStr.length; k++) {
@@ -218,7 +304,7 @@ function createChunks(str, end, start = 1) {
 
     }
     //console.log(str, chunks);
-    return chunks
+    return chunks;
 }
 
 function createChunk(str, end, start = 1) {
@@ -226,13 +312,32 @@ function createChunk(str, end, start = 1) {
 }
 
 
+*/
+
+/**
+ * 2. Für jedes Paar mit einer Überlappung wird eine gerichtete
+ *      Kante zwischen den entsprechenden Knoten von G eingefügt.
+ * @param {*} source 
+ * @param {*} target 
+ * @param {*} value 
+ */
+function addToGraphObj(i, source, target, value) {
+    var graphString = '{"id":' + i +
+        ', "source": ' + '"' + source + '"' +
+        ', "target": ' + '"' + target + '"' +
+        ', "value":' + value +
+        '}';
+
+    graphArray.push(JSON.parse(graphString));
+}
+
 /**
  *  Table 
  *  Erzeugen einer Tabelle mit Werten aus Array 
  */
 function buildTable(fragmentArray) {
     for (var i = 0; i < fragmentArray.length; i++) {
-        console.log(fragmentArray[i].id, fragmentArray[i].fragment, fragmentArray[i].count)
+        console.log(fragmentArray[i].id, fragmentArray[i].fragment, fragmentArray[i].count);
         
         var frag = fragmentArray[i].fragment; 
         
@@ -240,44 +345,26 @@ function buildTable(fragmentArray) {
         var td_id = tr.appendChild(document.createElement('td'));
         var td_frag = tr.appendChild(document.createElement('td'));
         var td_val = tr.appendChild(document.createElement('td'));
-        var td_btn = tr.appendChild(document.createElement('td'));
         
-        var btn = document.createElement('Button');
-        btn.type = "button";
-        btn.setAttribute("class", "btn_table");
-        btn.value = "Build graph";
-        if(btn.addEventListener){
-            btn.addEventListener('click', function() { 
-                squenz_assambly_var_1(frag, 3);
-            });    
-        } else if(btn.attachEvent){ // IE < 9 :(
-            btn.attachEvent('onclick', function() { 
-                 squenz_assambly_var_1(frag, 3);
-            });
-        }
-        
-        td_btn.appendChild(btn);
-
         var td_id_text = document.createTextNode(fragmentArray[i].id);
         var td_frag_text = document.createTextNode(fragmentArray[i].fragment);
         var td_val_text = document.createTextNode(fragmentArray[i].count);
-        var btn_text = document.createTextNode("Assambly Var 1 " + fragmentArray[i].id + " erzeugen");
+
 
         td_id.appendChild(td_id_text);
         td_frag.appendChild(td_frag_text);
         td_val.appendChild(td_val_text);
-        btn.appendChild(btn_text);
 
-        document.getElementById("tbody").appendChild(tr);
+        document.getElementById('tbody').appendChild(tr);
     }
 }
 
-/**
+/*''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
  * Graph
  * 
  * Links -> sind die Ergebnisse aus compareFragmentChunks
  * 
- */
+ /''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''*/
 function buildGraph(links) {
     var nodes = {};
 
@@ -289,14 +376,14 @@ function buildGraph(links) {
         link.target = nodes[link.target] ||
             (nodes[link.target] = { name: link.target });
         link.value = +link.value;
-    })
+    });
 
     //select all the elements below the SVG with the "svg > *" selector, i.e. to remove all of those
-    d3.selectAll("svg > *").remove();
+    d3.selectAll('svg > *').remove();
 
-    var svg = d3.select("svg"),
-        width = +svg.attr("width"),
-        height = +svg.attr("height"),
+    var svg = d3.select('svg'),
+        width = +svg.attr('width'),
+        height = +svg.attr('height'),
 
         markerWidth = 6,
         markerHeight = 6,
@@ -313,130 +400,130 @@ function buildGraph(links) {
         .size([width, height])
         .linkDistance(160)
         .charge(-300)
-        .on("tick", tick)
+        .on('tick', tick)
         .start();
 
     // asign a type per value to encode opacity
     links.forEach(function (link) {
         if (link.value <= 25) {
-            link.type = "twofive";
+            link.type = 'twofive';
         } else if ((link.value <= 50) && (link.value > 25)) {
-            link.type = "fivezero";
+            link.type = 'fivezero';
         } else if ((link.value) <= 75 && (link.value) > 50) {
-            link.type = "sevenfive";
+            link.type = 'sevenfive';
         } else if ((link.value) <= 100 && (link.value) > 75) {
-            link.type = "onezerozero";
+            link.type = 'onezerozero';
         }
     });
 
 
     // build the arrow.
-    svg.append("svg:defs").selectAll("marker")
-        .data(["end"])      // Different link/path types can be defined here
-        .enter().append("svg:marker")    // This section adds in the arrows
-        .attr("id", String)
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", refX)
-        .attr("refY", refY)
-        .attr("markerWidth", markerWidth)
-        .attr("markerHeight", markerHeight)
-        .attr("orient", "auto")
-        .append("svg:path")
-        .attr("d", "M0,-5L10,0L0,5");
+    svg.append('svg:defs').selectAll('marker')
+        .data(['end'])      // Different link/path types can be defined here
+        .enter().append('svg:marker')    // This section adds in the arrows
+        .attr('id', String)
+        .attr('viewBox', '0 -5 10 10')
+        .attr('refX', refX)
+        .attr('refY', refY)
+        .attr('markerWidth', markerWidth)
+        .attr('markerHeight', markerHeight)
+        .attr('orient', 'auto')
+        .append('svg:path')
+        .attr('d', 'M0,-5L10,0L0,5');
 
 
 
     // add the links and the arrows
-    var path = svg.selectAll(".path")
+    var path = svg.selectAll('.path')
         //svg.append("svg:g").selectAll("path")
         .data(force.links())
-        .enter().append("svg:path")
-        .attr("id", function (d) { return "path" + d.id; })
-        .attr("class", function (d) { return "link " + d.type; })
-        .attr("marker-end", "url(#end)")
+        .enter().append('svg:path')
+        .attr('id', function (d) { return 'path' + d.id; })
+        .attr('class', function (d) { return 'link ' + d.type; })
+        .attr('marker-end', 'url(#end)');
     //.attr("d", "M 10,90 Q 100,15 200,70 Q 340,140 400,30");
 
 
 
-    svg.selectAll(".link")
-        .append("text")
+    svg.selectAll('.link')
+        .append('text')
 
-        .append("textPath")
-        .attr("xlink:href", function (d) { return "#path" + d.id; })
-        .style("text-anchor", "middle")
-        .attr("startOffset", "50%")
+        .append('textPath')
+        .attr('xlink:href', function (d) { return '#path' + d.id; })
+        .style('text-anchor', 'middle')
+        .attr('startOffset', '50%')
         //.attr("x", pathX)
         //.attr("dy", "."+pathY+"em")
         //. //append a textPath to the text element
         .text(function (d) { return d.value; });
 
     // define the nodes
-    var node = svg.selectAll(".node")
+    var node = svg.selectAll('.node')
         .data(force.nodes())
-        .enter().append("g")
-        .attr("class", "node")
-        .on("click", click)
-        .on("dblclick", dblclick)
+        .enter().append('g')
+        .attr('class', 'node')
+        .on('click', click)
+        .on('dblclick', dblclick)
         .call(force.drag);
 
 
     // add the nodes
-    node.append("circle")
-        .attr("r", 5);
+    node.append('circle')
+        .attr('r', 5);
 
     // add the text 
-    node.append("text")
-        .attr("x", 12)
-        .attr("dy", ".35em")
+    node.append('text')
+        .attr('x', 12)
+        .attr('dy', '.35em')
         .text(function (d) { return d.name; });
 
     // add the curvy lines
     function tick() {
-        path.attr("d", function (d) {
+        path.attr('d', function (d) {
             var dx = d.target.x - d.source.x,
                 dy = d.target.y - d.source.y,
                 dr = Math.sqrt(dx * dx + dy * dy);
-            return "M" +
-                d.source.x + "," +
-                d.source.y + "A" +
-                dr + "," + dr + " 0 0,1 " +
-                d.target.x + "," +
+            return 'M' +
+                d.source.x + ',' +
+                d.source.y + 'A' +
+                dr + ',' + dr + ' 0 0,1 ' +
+                d.target.x + ',' +
                 d.target.y;
         });
 
         node
-            .attr("transform", function (d) {
-                return "translate(" + d.x + "," + d.y + ")";
+            .attr('transform', function (d) {
+                return 'translate(' + d.x + ',' + d.y + ')';
             });
     }
 
     // action to take on mouse click
     function click() {
-        d3.select(this).select("text").transition()
+        d3.select(this).select('text').transition()
             .duration(750)
-            .attr("x", 22)
-            .style("fill", "steelblue")
-            .style("stroke", "lightsteelblue")
-            .style("stroke-width", ".5px")
-            .style("font", "20px sans-serif");
-        d3.select(this).select("circle").transition()
+            .attr('x', 22)
+            .style('fill', 'steelblue')
+            .style('stroke', 'lightsteelblue')
+            .style('stroke-width', '.5px')
+            .style('font', '20px sans-serif');
+        d3.select(this).select('circle').transition()
             .duration(750)
-            .attr("r", 16)
-            .style("fill", "lightsteelblue");
+            .attr('r', 16)
+            .style('fill', 'lightsteelblue');
     }
 
     // action to take on mouse double click
     function dblclick() {
-        d3.select(this).select("circle").transition()
+        d3.select(this).select('circle').transition()
             .duration(750)
-            .attr("r", 6)
-            .style("fill", "#ccc");
-        d3.select(this).select("text").transition()
+            .attr('r', 6)
+            .style('fill', '#ccc');
+        d3.select(this).select('text').transition()
             .duration(750)
-            .attr("x", 12)
-            .style("stroke", "none")
-            .style("fill", "black")
-            .style("stroke", "none")
-            .style("font", "10px sans-serif");
+            .attr('x', 12)
+            .style('stroke', 'none')
+            .style('fill', 'black')
+            .style('stroke', 'none')
+            .style('font', '10px sans-serif');
     }
-};
+}
