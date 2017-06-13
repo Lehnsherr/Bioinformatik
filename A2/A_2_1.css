@@ -21,10 +21,10 @@ path.link.onezerozero {
   opacity: 1.0;
 }
 
-circle {
-  fill: #ccc;
-  stroke: #fff;
-  stroke-width: 1.5px;
+*/
+.node text {
+  pointer-events: none;
+  font: 10px sans-serif;
 }
 
 text {

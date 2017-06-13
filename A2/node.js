@@ -1,19 +1,14 @@
 'use strict';
 
-function test(){
-    console.log('test');
-}
-
-
 class Node {
-    constructor(fragment, edgesIn, edgesOut) {
+    constructor(fragment) {
         this.edgesIn = [];
         this.edgesOut = [];
-        this.fragment = checkVaildeFragment(fragment);
+        this.fragment = this.checkVaildeFragment(fragment);
     }
 
     get getvaildeFragment() {
-        return this.checkVaildeFragment(fragment);
+        return this.checkVaildeFragment(this.fragment);
     }
 
     checkVaildeFragment(fragment) {

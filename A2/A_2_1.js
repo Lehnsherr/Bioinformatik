@@ -12,7 +12,10 @@
 // Graph Objekt Array
 var objArray = [];
 var graphArray = [];
+var fragmentArray = undefined;
 
+var nodes = [];
+var edges = [];
 'use strict';
 
 /**
@@ -65,7 +68,7 @@ function readBlob(opt_startByte, opt_stopByte) {
         if (evt.target.readyState == FileReader.DONE) { // DONE == 2
             var lines = reader.result.split('\n');
             var c = 0;
-            var fragmentArray = [];
+            fragmentArray = [];
 
             for (var i = 0; i < lines.length; i++) {
                 c = c + lines[i].length;
@@ -81,14 +84,6 @@ function readBlob(opt_startByte, opt_stopByte) {
                     ['Read bytes: ', start + 1, ' - ', stop + 1,
                         ' of ', file.size, ' byte file'].join('');
             }
-
-            console.log(fragmentArray);
-            var AdjazenzArray = makeAdjazenzArray(fragmentArray);
-            //var AdjazenzList = 
-            //AdjazenzArrayToList(AdjazenzArray);
-
-            console.log(AdjazenzArray);
-            //console.log(AdjazenzList);
         }
     };
 
@@ -96,6 +91,7 @@ function readBlob(opt_startByte, opt_stopByte) {
     reader.readAsBinaryString(blob);
 }
 
+//Button mit onclick belegen 
 document.querySelector('.readBytesButtons').addEventListener('click', function (evt) {
     if (evt.target.tagName.toLowerCase() == 'button') {
         var startByte = evt.target.getAttribute('data-startbyte');
@@ -103,6 +99,8 @@ document.querySelector('.readBytesButtons').addEventListener('click', function (
         readBlob(startByte, endByte);
     }
 }, false);
+
+
 
 /**
  * Objekte erstellen
@@ -117,79 +115,124 @@ function lineToFragment(line, count, i) {
     return objArray[i];
 }
 
+document.querySelector('.buildGraph').addEventListener('click', function (evt) {
+    if (evt.target.tagName.toLowerCase() == 'button') {
+        if (fragmentArray === undefined) {
+            alert('Please select a file!');
+        }else{
+            makeGraph();
+        }
+    }
+}, false);
 
-/**
- * Objekte erstellen
- */
-function toAdjazenzString(id, frag_id, frag, compare_frag_id, compare_frag, overlap) {
-    var objArray = [];
-    var adjazenzString = '{"id":' + id +
-        ', "fragment_ID": ' + '"' + frag_id + '"' +
-        ', "fragment": ' + '"' + frag + '"' +
-        ', "Compfragment_ID": ' + '"' + compare_frag_id + '"' +
-        ', "fragment_2": ' + '"' + compare_frag + '"' +
-        ', "overlap":' + overlap + '}';
+document.querySelector('.mergeGraph').addEventListener('click', function (evt) {
+    if (evt.target.tagName.toLowerCase() == 'button') {
+        if (fragmentArray === undefined) {
+            alert('Please select a file!');
+        }else{
+            merdgeNodes(edges);
+        }
+    }
+}, false);
 
-    objArray[id] = JSON.parse(adjazenzString);
 
-    return objArray[id];
-}
+function makeGraph(){
+    //console.log(fragmentArray);
+    nodes = [];
+    edges = [];
+    //var AdjazenzArray = makeAdjazenzArray(fragmentArray);
 
-function makeAdjazenzArray(fragments) {
-    var Adjazenzlist = [];
-    var k = 0;
-    var l = 0;
+    for (var i = 0; i < fragmentArray.length; i++) {
+        node = new Node(fragmentArray[i].fragment);
+        
+        nodes[i] = node;
+    }
 
-    for (var i = 0; i < fragments.length; i++) {
-        var fragment = fragments[i].fragment;
-        for (var j = 0; j < fragments.length; j++) {
-            var compare_frag = fragments[j].fragment;
-            var overlap = longestCommonSubstring(fragment, compare_frag);
 
-            if (overlap.length !== 0 && overlap.length !== fragment.length && overlap.length !== compare_frag.length && fragment !== compare_frag) {
-                Adjazenzlist[l] = (toAdjazenzString(k, i, fragment, j, compare_frag, overlap.length));
-                addToGraphObj(i, fragment, compare_frag, overlap.length);
-                l++;
+    for (var i = 0; i < fragmentArray.length; i++) { 
+        for (var j = 0; j < fragmentArray.length; j++) {
+
+            if (fragmentArray[i].fragment == fragmentArray[j].fragment){
+                continue;
             }
 
-            k++;
+            if (nodes[j] === undefined){
+                break;
+            }
+
+            let overlap = longestCommonSubstring(nodes[i].fragment, nodes[j].fragment);
+
+            if (overlap <= 0){
+                continue;   
+            }
+            //console.log(nodes[i].fragment, nodes[j].fragment, overlap);
+
+            edge = new Edge(i, nodes[i].fragment, j, nodes[j].fragment, overlap.sequence);
+            nodes[i].edgesOut.push(edge);
+            nodes[j].edgesIn.push(edge);
         }
+        
+        edges.push(nodes[i].edgesOut);
+
     }
+    edges = [].concat.apply([], edges)
+
+
+    //merdgeNodes(edges);
+    
+    console.log(edges);
+    console.log(nodes);
+    
+    
+    //Graph erstellen
+    
+    let x = 0;
+    edges.forEach(function(edge) {
+        x++;
+        addToGraphObj(x , edge.from, edge.to, edge.overlap.length);
+    });
+    
     buildGraph(graphArray);
-    return Adjazenzlist;
 }
 
-/*
-function AdjazenzArrayToList(AdjazenzArray) {
-     var str = '';
-    for (var i = 0; i < AdjazenzArray.length; i++) {
-        var j = i+1;
-       
-        var node = AdjazenzArray[i].fragment;
-        var next_node = AdjazenzArray[j].fragment;
-        var edge = AdjazenzArray[i].fragment_2;
-        var overlap = AdjazenzArray[i].overlap;
-        var edgesOut = [];
+//Reduzierung des Graphen 
+//Raussuchen der Groeßten überlappung
+//Verschmelzung dieser
+function merdgeNodes(edges){
+    var new_fragment = undefined;
+    var max_edge = getMaxOverlap(edges);
+    console.log(max_edge);
+
+    var tmp_node_from = max_edge.from;
+    var tmp_node_to = max_edge.to;
+
+    var tmp_node_from_rest = (tmp_node_from.split(max_edge.overlap));
+    var tmp_node_to_rest = (tmp_node_to.split(max_edge.overlap));
+
+    new_fragment = tmp_node_to_rest[0] + max_edge.overlap + tmp_node_from_rest[1];
+    
+    //alte Nodes entfernen
+    nodes.splice(tmp_node_from.id, tmp_node_to.id)
+
+    node = new Node(new_fragment);
+}
 
 
+function getMaxOverlap(edges){
+    var max_overlap_edge;
 
-        if (j = AdjazenzArray.length){
-            break;
-        }
-        if (next_node == node) {
-            value_edge = edge + '(' + overlap + ')';
-            console.log(value_edge);
-            edgesOut.push(value_edge);
-        } else {
-            str = str + node + edgesOut;
-        }
-        console.log(node, edge, overlap)
+    if(edges !== undefined){
+        max_overlap_edge = edges[0];
     }
 
-    console.log(str);
-    //return AdjazenzList;
+    for (var i = 0; i < edges.length; i++) {
+        if (edges[i].overlap.length > max_overlap_edge.overlap.length){
+            max_overlap_edge = edges[i];
+        }
+    }
+    return max_overlap_edge;
 }
-*/
+
 
 
 function longestCommonSubstring(str1, str2) {
@@ -265,6 +308,81 @@ function addToGraphObj(i, source, target, value) {
     graphArray.push(JSON.parse(graphString));
 }
 
+
+/**
+ * Objekte erstellen
+ /
+function toAdjazenzString(id, frag_id, frag, compare_frag_id, compare_frag, overlap) {
+    var objArray = [];
+    var adjazenzString = '{"id":' + id +
+        ', "fragment_ID": ' + '"' + frag_id + '"' +
+        ', "fragment": ' + '"' + frag + '"' +
+        ', "Compfragment_ID": ' + '"' + compare_frag_id + '"' +
+        ', "fragment_2": ' + '"' + compare_frag + '"' +
+        ', "overlap":' + overlap + '}';
+
+    objArray[id] = JSON.parse(adjazenzString);
+
+    return objArray[id];
+}
+
+function makeAdjazenzArray(fragments) {
+    var Adjazenzlist = [];
+    var k = 0;
+    var l = 0;
+
+    for (var i = 0; i < fragments.length; i++) {
+        var fragment = fragments[i].fragment;
+        for (var j = 0; j < fragments.length; j++) {
+            var compare_frag = fragments[j].fragment;
+            var overlap = longestCommonSubstring(fragment, compare_frag);
+
+            if (overlap.length !== 0 && overlap.length !== fragment.length && overlap.length !== compare_frag.length && fragment !== compare_frag) {
+                Adjazenzlist[l] = (toAdjazenzString(k, i, fragment, j, compare_frag, overlap.length));
+                addToGraphObj(i, fragment, compare_frag, overlap.length);
+                l++;
+            }
+
+            k++;
+        }
+    }
+    buildGraph(graphArray);
+    return Adjazenzlist;
+}
+
+*/
+
+/*
+function AdjazenzArrayToList(AdjazenzArray) {
+     var str = '';
+    for (var i = 0; i < AdjazenzArray.length; i++) {
+        var j = i+1;
+       
+        var node = AdjazenzArray[i].fragment;
+        var next_node = AdjazenzArray[j].fragment;
+        var edge = AdjazenzArray[i].fragment_2;
+        var overlap = AdjazenzArray[i].overlap;
+        var edgesOut = [];
+
+
+
+        if (j = AdjazenzArray.length){
+            break;
+        }
+        if (next_node == node) {
+            value_edge = edge + '(' + overlap + ')';
+            console.log(value_edge);
+            edgesOut.push(value_edge);
+        } else {
+            str = str + node + edgesOut;
+        }
+        console.log(node, edge, overlap)
+    }
+
+    console.log(str);
+    //return AdjazenzList;
+}
+*/
 
 
 /* Veraltet, kann wsl weg
