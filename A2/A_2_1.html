@@ -19,35 +19,32 @@
     <div class="row">
         <div class="col-md-4">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <input type="file" id="files" name="files[]" multiple />
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div id="byte_range"></div>
                 </div>
+            </div>
+            </br>
 
-                <div class="col-md-4">
+            <div class="row">
+                <div class="col-md-6">
                     <div class="readBytesButtons">
                         <button>Datei auslesen</button>
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="buildGraph">
-                        <button>Graph anzeigen</button>
-                    </div>
-                </div>
-                <div class="col-md-4">
+
+                <div class="col-md-6">
                     <div class="mergeGraph">
                         <button>Graph reduzieren</button>
                     </div>
                 </div>
             </div>
             </br>
-            <table class="table table-bordered" border="1">
 
+            <table class="table table-bordered" id='inputTab' border="1">
                 <thead>
                     <tr>
                         <th>ID:</th>
@@ -56,13 +53,22 @@
                         <!-- <th>Erzeuge Graph mit:</th> -->
                     </tr>
                 </thead>
-                <tbody id="tbody"></tbody>
+                <tbody id="tbody_inputTab"></tbody>
+            </table>
+
+            <table class="table table-bordered" id='outputTab' border="1">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Verschmelzung der Größten Kante</th>
+                    </tr>
+                </thead>
+               <tbody id="tbody_outputTab"></tbody>
             </table>
         </div>
 
-
         <div class="col-md-8">
-            <svg width="1000" height="500"></svg>
+            <svg width="1000" height="1000"></svg>
         </div>
 
     </div>

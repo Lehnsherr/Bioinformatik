@@ -158,3 +158,41 @@ function buildGraph(links) {
         });
     });
 }
+
+
+function buildSingelNode(node) {
+    var colors = d3.scale.category10();
+    console.log(node);
+    //select all the elements below the SVG with the "svg > *" selector, i.e. to remove all of those
+    d3.selectAll('svg > *').remove();
+
+    var svg = d3.select('svg'),
+        width = +svg.attr('width'),
+        height = +svg.attr('height');
+
+    var force = d3.layout.force()
+        .nodes(d3.values(node))
+        .size([width, height])
+        .start();
+    
+    var node = svg.selectAll("circle")
+        .data(force.nodes())
+        .enter()
+        .append("circle")
+        .attr({ "r": 15
+            })
+        .style("fill", function (d, i) { return colors(i); })
+        .call(force.drag);
+
+    var nodelabels = svg.selectAll(".nodelabel")
+        .data(force.nodes())
+        .enter()
+        .append("text")
+        .attr({"x":function(d){
+            return d.x;},
+              "y":function(d){return d.y;},
+              "class":"nodelabel",
+              "stroke":"black"})
+       .text(function(d){return d.name;});
+    
+}

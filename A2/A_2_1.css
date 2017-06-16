@@ -5,33 +5,7 @@ path.link {
   stroke-width: 1.5px;
 }
 
-path.link.twofive {
-  opacity: 0.25;
-}
 
-path.link.fivezero {
-  opacity: 0.50;
-}
-
-path.link.sevenfive {
-  opacity: 0.75;
-}
-
-path.link.onezerozero {
-  opacity: 1.0;
-}
-
-*/
-.node text {
-  pointer-events: none;
-  font: 10px sans-serif;
-}
-
-text {
-  fill: #000;
-  font: 10px sans-serif;
-  pointer-events: none;
-}
 
 #byte_content {
   margin: 5px 0;
@@ -40,10 +14,6 @@ text {
   overflow-x: hidden;
 }
 
-.btn_table{
-   display: inline-block;
-   width: 100%;       /* set to 100% */
-   height: 100%;      /* set to 100% */
-   padding-top: .6em;
-   padding-bottom: .6em;
+td{
+  text-align: left;
 }
