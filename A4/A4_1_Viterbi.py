@@ -1,11 +1,20 @@
+"""
+15:05 Montag, 10. Juli 2017 (MESZ) 
+@author: JSey 3603466
+"""
+
+
 import json
-import numpy
-from itertools import islice, count
+import Tkinter as tk
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+import numpy as np
+import argparse
 
 faktor = 1
 
 
-def viterbi(sequenz, zustaende, zustaende_wsl, uebergangs_wsl, emmisions_wsl):
+def viterbi(sequenz, zustaende, zustaende_wsl, uebergangs_wsl, emmisions_wsl, plot):
     viterbi_list = [{}]
     opt_wsl = []
     opt_wsl_str = ""
@@ -13,7 +22,7 @@ def viterbi(sequenz, zustaende, zustaende_wsl, uebergangs_wsl, emmisions_wsl):
     max_wsl = 0
 
     for zustand in zustaende:
-        viterbi_list[0][zustand] = {"Wahrscheinlichkeit": numpy.float128((zustaende_wsl[zustand] * emmisions_wsl[zustand][sequenz[0]])*faktor), "vorher": None, "Index": j}
+        viterbi_list[0][zustand] = {"Wahrscheinlichkeit": np.float128((zustaende_wsl[zustand] * emmisions_wsl[zustand][sequenz[0]])*faktor), "vorher": None, "Index": j}
 
     for i in range(1, len(sequenz)):
 
@@ -21,15 +30,14 @@ def viterbi(sequenz, zustaende, zustaende_wsl, uebergangs_wsl, emmisions_wsl):
 
         for zustand in zustaende:
             max_uebergangs_wsl = max(
-                numpy.float128(viterbi_list[i-1][vorher_zustand]["Wahrscheinlichkeit"]*uebergangs_wsl[vorher_zustand][zustand]) for vorher_zustand in zustaende
+                np.float128(viterbi_list[i-1][vorher_zustand]["Wahrscheinlichkeit"]*uebergangs_wsl[vorher_zustand][zustand]) for vorher_zustand in zustaende
             )
 
             for vorher_zustand in zustaende:
-
                 if viterbi_list[i-1][vorher_zustand]["Wahrscheinlichkeit"] * uebergangs_wsl[vorher_zustand][zustand] == max_uebergangs_wsl:
-                    j = j + 1
-                    max_wsl = numpy.float128(max_uebergangs_wsl * emmisions_wsl[zustand][sequenz[i]])
-                    viterbi_list[i][zustand] = {"Wahrscheinlichkeit": max_wsl, "vorher": vorher_zustand, "Index": j}
+                    
+                    max_wsl = np.float128(max_uebergangs_wsl * emmisions_wsl[zustand][sequenz[i]])
+                    viterbi_list[i][zustand] = {"Wahrscheinlichkeit": max_wsl, "vorher": vorher_zustand, "Index": i}
 
                     break
 
@@ -60,6 +68,11 @@ def viterbi(sequenz, zustaende, zustaende_wsl, uebergangs_wsl, emmisions_wsl):
     # print ' \n Die Abfolge der Zustaende ist \n '+' '.join(opt_wsl) + '\n mit der hoehsten Wahrscheinlichkeit von %s' % max_wsl + '\n'
     print ' \n Die Abfolge der Zustaende ist \n '+ opt_wsl_str + '\n mit der hoehsten Wahrscheinlichkeit von %s' % max_wsl + '\n'
 
+    # for line in viterbi_list:
+    #     print str(line) + '\n'
+
+    buildScala(viterbi_list, plot)
+
 
 def toStringMaxWsl(viterbi_list, previous):
     opt_to_string = ''
@@ -83,6 +96,7 @@ def toStringTest(viterbi_list):
 
 def dptable(viterbi_list):
     for zustand in viterbi_list[0]:
+        # yield zustand + " ".join('\n' + str(viterbi_item[zustand]["Wahrscheinlichkeit"]) for viterbi_item in viterbi_list)
         # yield "%.20s: " % zustand + " ".join("%.20s" % ("%f" % viterbi_item[zustand]["Wahrscheinlichkeit"]) for viterbi_item in viterbi_list)
         yield zustand + " ".join('\n' + str(viterbi_item[zustand]["Index"]) + ' ' + str(viterbi_item[zustand]["Wahrscheinlichkeit"]) for viterbi_item in viterbi_list)
 
@@ -105,11 +119,14 @@ def readJsonFile(file_name):
 
 def getSequenz(result_data, name):
     arr = []
+    test_str = ''
     for line in result_data:
         arr = line.split()
 
         if (arr[0] == name):
-            return list(arr[1])
+            # Expertiment Sequenz herumdrehen 
+            return list(reversed_string(str(arr[1])))
+            # return list(arr[1])
 
 
 def getZustaende(arr):
@@ -121,22 +138,75 @@ def getZustaende(arr):
     return zstd_arr
 
 
-if __name__ == "__main__":
-    result_data = readTxtFile('wuerfel.txt')
+def reversed_string(a_string):
+    return a_string[::-1]
+    # return a_string.join(reversed(a_string))
 
-    wsl = readJsonFile('wsl_wuerfel.json')
 
-    zustaende_wsl = wsl['Zustaende']
-    uebergangs_wsl = wsl['Uebergangs']
-    emmisions_wsl = wsl['Emmisionswsl']
+def buildScala(viterbi_list, plot):
+    y_1_arr = []
+    y_2_arr = []
+    x_1_arr = []
+    x_2_arr = []
 
-    sequenz = getSequenz(result_data, 'zahlenfolge')
-    zustaende = getZustaende(zustaende_wsl)
+    for viterbi_item in viterbi_list:
+        y_1_arr.append(viterbi_item['ungezinkt']['Wahrscheinlichkeit'])
+        x_1_arr.append(viterbi_item['ungezinkt']['Index'])
 
-    print(sequenz)
-    print(zustaende)
-    print(zustaende_wsl)
-    print(uebergangs_wsl)
-    print(emmisions_wsl)
+        y_2_arr.append(viterbi_item['gezinkt']['Wahrscheinlichkeit'])
+        x_2_arr.append(viterbi_item['gezinkt']['Index'])
 
-    viterbi(sequenz, zustaende, zustaende_wsl, uebergangs_wsl, emmisions_wsl)
+    fig, ax = plt.subplots()
+
+    if plot == 'l':
+        ax.set_yscale('log')
+    
+    if plot == 'l' or plot == 'n':
+        ax.plot(x_1_arr, y_1_arr, '#7eb283', label='ungezinkt')
+        ax.plot(x_2_arr, y_2_arr, '#d1252b', label='gezinkt')
+
+        legend = ax.legend(loc='upper center', shadow=True, fontsize='x-large')
+        legend.get_frame().set_facecolor('#FFFFFF')
+  
+        plt.show()
+
+
+
+##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
+# Kommandozeilen-Args
+##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
+
+__parser__ = argparse.ArgumentParser(
+    description="Viterbi Algorithmus mit Skala plot.")
+
+__parser__.add_argument(
+    "-p",
+    "--plot",
+    type=str,
+    required=False,
+    help="l(= logarithmische Skala) || n (= normale Skala)")
+
+# Parsen der Kommandozeilen-Args
+if __name__ == '__main__':
+    __args__ = __parser__.parse_args()
+
+    __plot__ = __args__.plot
+
+    __result_data__ = readTxtFile('wuerfel.txt')
+
+    __wsl__ = readJsonFile('wsl_wuerfel.json')
+
+    __zustaende_wsl__ = __wsl__['Zustaende']
+    __uebergangs_wsl__ = __wsl__['Uebergangs']
+    __emmisions_wsl__ = __wsl__['Emmisionswsl']
+
+    __sequenz__ = getSequenz(__result_data__, 'zahlenfolge')
+    __zustaende__ = getZustaende(__zustaende_wsl__)
+
+    print(__sequenz__)
+    print(__zustaende__)
+    print(__zustaende_wsl__)
+    print(__uebergangs_wsl__)
+    print(__emmisions_wsl__)
+
+    viterbi(__sequenz__, __zustaende__, __zustaende_wsl__, __uebergangs_wsl__, __emmisions_wsl__, __plot__)
