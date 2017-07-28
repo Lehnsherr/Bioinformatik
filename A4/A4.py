@@ -274,16 +274,17 @@ def buildForwardScala(forward_list, plot):
 # #--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 
 __parser__ = argparse.ArgumentParser(
-    description="Viterbi Algorithmus mit Skala plot.")
+    description="Forwards/Viterbi Algorithmus mit Skala plot.(Backwards wurde nicht benoetigt) \n" +
+                "Example: Viterbi Algorithm + Plot Log : python A4_2.py -a vit -p l")
 
 __parser__.add_argument(
     "-a",
     "--algorithmus",
     type=str,
     required=True,
-    help=" Viterbi  == '"'vit'"' or '"'Viterbi'"'.  \n " +
-         " Vorwaerts-Alg == '"'vor'"' or '"'Vorwaerts'"'. \n " +    
-         " Rueckwaerts-Alg == '"'ruck'"' or '"'Ruckwarts'"'. ")
+    help=" Viterbi-Alg == '"'vit'"' or '"'Viterbi'"'. \n " +
+        " Vorwaerts-Alg == '"'vor'"' or '"'Vorwaerts'"'. \n " +
+        " Rueckwaerts-Alg == '"'ruck'"' or '"'Rueckwarts'"'. ")
 
 __parser__.add_argument(
     "-p",
@@ -322,7 +323,7 @@ if __name__ == '__main__':
     elif __algorithmus__ == 'vor' or __algorithmus__ == 'Vorwaerts':
         forward_list = forward(__sequenz__, __zustaende__, __zustaende_wsl__, __uebergangs_wsl__, __emmisions_wsl__)
         buildForwardScala(forward_list, __plot__)
-    elif __algorithmus__ == 'ruck' or __algorithmus__ == 'Ruckwarts':
+    elif __algorithmus__ == 'ruck' or __algorithmus__ == 'Rueckwarts':
         print'Backward Algorithmus wurde nicht implementiert, da nur einer benoetigt'
     else:
         print 'BUG'
